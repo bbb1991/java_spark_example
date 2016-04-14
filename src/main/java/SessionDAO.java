@@ -6,59 +6,69 @@ import sun.misc.BASE64Encoder;
 import java.security.SecureRandom;
 
 public class SessionDAO {
+
     private final MongoCollection<Document> sessionsCollection;
 
     public SessionDAO(final MongoDatabase blogDatabase) {
-        sessionsCollection = blogDatabase.getCollection("sessions");
+        this.sessionsCollection = blogDatabase.getCollection("sessions");
     }
 
 
-    public String findUserNameBySessionId(String sessionId) {
+    /**
+     * Поиск в базе пользователя по id и возвращения поля username
+     * @param sessionId id сессий
+     * @return
+     */
+    public String findUserNameBySessionId(final String sessionId) {
         Document session = getSession(sessionId);
 
-        if (session == null) {
-            return null;
-        }
-        else {
+        if (session != null) {
             return session.get("username").toString();
         }
+        return null;
     }
 
 
-    // starts a new session in the sessions table
-    public Document startSession(String username) {
+    /**
+     * Создание сессий для пользователя
+     * @param username логин, на которую нужно создать сессию
+     * @return новая сессия
+     */
+    public Document startSession(final String username) {
 
-        // get 32 byte random number. that's a lot of bits.
+        // Генерируем новый ID сессий
         SecureRandom generator = new SecureRandom();
         byte randomBytes[] = new byte[32];
         generator.nextBytes(randomBytes);
 
         BASE64Encoder encoder = new BASE64Encoder();
-
         String sessionID = encoder.encode(randomBytes);
 
-        // build the BSON object
+        // создание нового BSON обьекта
         Document session = new Document("username", username);
-
         session.append("_id", sessionID);
 
-        sessionsCollection.deleteMany(
-                new Document("username",username));
-
+        // удаление старых сессий, если остались и вставка новой
+        sessionsCollection.deleteMany(new Document("username",username));
         sessionsCollection.insertOne(session);
 
         return session;
     }
 
-    // ends the session by deleting it from the sesisons table
-    public void endSession(String sessionID) {
-        sessionsCollection.deleteOne
-                (new Document("_id", sessionID));
+    /**
+     * Удаление сессий пользователя
+     * @param sessionID
+     */
+    public void endSession(final String sessionID) {
+        sessionsCollection.deleteOne(new Document("_id", sessionID));
     }
 
-    // retrieves the session from the sessions table
-    public Document getSession(String sessionID) {
-        return sessionsCollection.find(
-                new Document("_id", sessionID)).first();
+    /**
+     * Получение сессий по id
+     * @param sessionID  id сессий
+     * @return сессия пользователя
+     */
+    public Document getSession(final String sessionID) {
+        return sessionsCollection.find(new Document("_id", sessionID)).first();
     }
 }

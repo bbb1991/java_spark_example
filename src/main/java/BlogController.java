@@ -26,8 +26,14 @@ public class BlogController {
     private static SessionDAO sessionDAO;
     private static BlogPostDAO blogPostDAO;
     private static Document user = null;
+    private static final int MAX_POST_COUNT = 10;
 
 
+    /**
+     * Конструктор с аргументом
+     * @param configuration конфигурация Freemarker
+     * @throws IOException
+     */
     public BlogController(Configuration configuration) throws IOException {
         BlogController.configuration = configuration;
         userDAO = new UserDAO(database);
@@ -38,26 +44,12 @@ public class BlogController {
 
     private void initializeRoutes() throws IOException {
 
-        Spark.get("/hello", (req, resp) -> {
-
-            if (user == null) {
-                resp.redirect("/login");
-                Spark.halt(301);
-            }
-
-            Map<String, Object> arguments = new HashMap<>();
-
-            arguments.put("username", user.get("username"));
-            return new ModelAndView(arguments, "hello.ftl");
-        }, new FreeMarkerEngine(configuration));
-
-
-        // this is the blog home page
+        // Домашняя страница блога
         Spark.get("/", (req, resp) -> {
 
             String username = sessionDAO.findUserNameBySessionId(getSessionCookie(req));
 
-            List<Document> posts = blogPostDAO.findByDateDescending(10);
+            List<Document> posts = blogPostDAO.findByDateDescending(MAX_POST_COUNT);
             SimpleHash root = new SimpleHash();
 
             root.put("myposts", posts);
@@ -69,6 +61,7 @@ public class BlogController {
             return new ModelAndView(root, "blog.ftl");
         }, new FreeMarkerEngine(configuration));
 
+        // Страница для отображения конкретного поста
         Spark.get("/post/:permalink", (req, resp) -> {
             String permalink = req.params(":permalink");
 
@@ -76,6 +69,7 @@ public class BlogController {
 
             Document post = blogPostDAO.findByPermalink(permalink);
 
+            // TODO change halt() to redirect()
             if (post == null) {
                 Spark.halt(404, "Post not found, sorry...");
             }
@@ -93,7 +87,9 @@ public class BlogController {
             return new ModelAndView(root, "entry.ftl");
         }, new FreeMarkerEngine(configuration));
 
+        // Метод для добавления комментов
         Spark.post("/newcomment", (request, response) -> {
+
             String name = StringEscapeUtils.escapeHtml4(request.queryParams("commentName"));
             String email = StringEscapeUtils.escapeHtml4(request.queryParams("commentEmail"));
             String body = StringEscapeUtils.escapeHtml4(request.queryParams("commentBody"));
@@ -165,7 +161,6 @@ public class BlogController {
                 resp.redirect("/welcome");
                 Spark.halt(301);
             }
-
 
             resp.redirect("/hello", 301);
             return null;
@@ -271,7 +266,9 @@ public class BlogController {
 
                 // this should delete the cookie
                 Cookie c = getSessionCookieActual(req);
-                c.setMaxAge(0);
+                if (c != null) {
+                    c.setMaxAge(0);
+                }
 
                 resp.raw().addCookie(c);
 
@@ -308,18 +305,13 @@ public class BlogController {
         return null;
     }
 
-    // tags the tags string and put it into an array
+    // работа с тэгами
     private ArrayList<String> extractTags(String tags) {
-
-        // probably more efficent ways to do this.
-        //
-        // whitespace = re.compile('\s')
 
         tags = tags.replaceAll("\\s", "");
         String tagArray[] = tags.split(",");
 
-        // let's clean it up, removing the empty string and removing dups
-        ArrayList<String> cleaned = new ArrayList<String>();
+        ArrayList<String> cleaned = new ArrayList<>();
         for (String tag : tagArray) {
             if (!tag.equals("") && !cleaned.contains(tag)) {
                 cleaned.add(tag);
