@@ -26,7 +26,7 @@ public class FreeMarkerEngine extends TemplateEngine {
     /**
      * Creates a FreeMarkerEngine
      */
-    public FreeMarkerEngine() {
+    private FreeMarkerEngine() {
         this.configuration = createDefaultConfiguration();
     }
 

@@ -1,11 +1,3 @@
-
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.*;
@@ -15,29 +7,23 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
 public class BlogPostDAO {
-    MongoCollection<Document> postsCollection;
+    private MongoCollection<Document> postsCollection;
 
     public BlogPostDAO(final MongoDatabase blogDatabase) {
         postsCollection = blogDatabase.getCollection("posts");
     }
 
     public Document findByPermalink(String permalink) {
-        Document post = postsCollection.find(new Document("permalink", permalink)).first();
-
-
-        return post;
+        return postsCollection.find(new Document("permalink", permalink)).first();
     }
 
     public List<Document> findByDateDescending(int limit) {
 
-        List<Document> posts = postsCollection.find().sort(new Document("date", -1)).limit(limit).into(new ArrayList<Document>());
-
-        return posts;
+        return postsCollection.find().sort(new Document("date", -1)).limit(limit).into(new ArrayList<Document>());
     }
 
     public List<Document> findByTagDateDescending(final String tag) {

@@ -1,7 +1,3 @@
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -30,7 +26,7 @@ public class SessionDAO {
 
 
     // starts a new session in the sessions table
-    public String startSession(String username) {
+    public Document startSession(String username) {
 
         // get 32 byte random number. that's a lot of bits.
         SecureRandom generator = new SecureRandom();
@@ -51,7 +47,7 @@ public class SessionDAO {
 
         sessionsCollection.insertOne(session);
 
-        return session.getString("_id");
+        return session;
     }
 
     // ends the session by deleting it from the sesisons table

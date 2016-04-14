@@ -1,6 +1,6 @@
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import freemarker.template.Configuration;
 import freemarker.template.SimpleHash;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.bson.Document;
@@ -18,9 +18,9 @@ import java.util.Map;
 
 public class BlogController {
 
-
     private static MongoClient mongo = new MongoClient();
     private static MongoDatabase database = mongo.getDatabase("blog");
+    private static Configuration configuration;
 
     private static UserDAO userDAO;
     private static SessionDAO sessionDAO;
@@ -28,7 +28,8 @@ public class BlogController {
     private static Document user = null;
 
 
-    public BlogController() throws IOException {
+    public BlogController(Configuration configuration) throws IOException {
+        BlogController.configuration = configuration;
         userDAO = new UserDAO(database);
         sessionDAO = new SessionDAO(database);
         blogPostDAO = new BlogPostDAO(database);
@@ -48,7 +49,7 @@ public class BlogController {
 
             arguments.put("username", user.get("username"));
             return new ModelAndView(arguments, "hello.ftl");
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
 
         // this is the blog home page
@@ -66,7 +67,7 @@ public class BlogController {
             }
 
             return new ModelAndView(root, "blog.ftl");
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
         Spark.get("/post/:permalink", (req, resp) -> {
             String permalink = req.params(":permalink");
@@ -87,10 +88,10 @@ public class BlogController {
             SimpleHash root = new SimpleHash();
 
             root.put("post", post);
-            root.put("comment", newComment);
+            root.put("comments", newComment);
 
             return new ModelAndView(root, "entry.ftl");
-        });
+        }, new FreeMarkerEngine(configuration));
 
         Spark.post("/newcomment", (request, response) -> {
             String name = StringEscapeUtils.escapeHtml4(request.queryParams("commentName"));
@@ -124,7 +125,7 @@ public class BlogController {
                 Spark.halt(301);
                 return null;
             }
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
 
         Spark.get("/error", (req, resp) -> {
@@ -132,12 +133,12 @@ public class BlogController {
             map.put("error", "The server made a boo-boo...");
 
             return new ModelAndView(map, "error.ftl");
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
 
         Spark.get("/login", (req, resp) -> {
             return new ModelAndView(null, "login.ftl");
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
         Spark.post("/login", (req, resp) -> {
             String username = req.queryParams("username");
@@ -152,7 +153,7 @@ public class BlogController {
 
 
             // valid user, let's log them in
-            String sessionID = sessionDAO.startSession(user.get("_id").toString());
+            String sessionID = sessionDAO.startSession(user.get("username").toString()).getString("_id");
 
             if (sessionID == null) {
                 resp.redirect("/error");
@@ -180,7 +181,7 @@ public class BlogController {
             root.put("username", username);
 
             return new ModelAndView(root, "new_post.ftl");
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
         Spark.get("/tag/:thetag", (request, response) -> {
 
@@ -196,7 +197,7 @@ public class BlogController {
             }
 
             return new ModelAndView(root, "blog.ftl");
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
         Spark.get("/welcome", (request, response) -> {
             String cookie = getSessionCookie(request);
@@ -215,7 +216,7 @@ public class BlogController {
 
                 return new ModelAndView(root, "welcome.ftl");
             }
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
         Spark.post("/newpost", (req, resp) -> {
             String title = StringEscapeUtils.escapeHtml4(req.queryParams("subject"));
@@ -232,7 +233,7 @@ public class BlogController {
 
             if (title.equals("") || post.equals("")) {
                 // redisplay page with errors
-                HashMap<String, String> root = new HashMap<String, String>();
+                HashMap<String, String> root = new HashMap<>();
                 root.put("errors", "post must contain a title and blog entry.");
                 root.put("subject", title);
                 root.put("username", username);
@@ -255,7 +256,7 @@ public class BlogController {
                 return null;
 
             }
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
         Spark.get("/logout", (req, resp) -> {
             String sessionID = getSessionCookie(req);
@@ -278,7 +279,7 @@ public class BlogController {
                 Spark.halt(301);
                 return null;
             }
-        }, new FreeMarkerEngine());
+        }, new FreeMarkerEngine(configuration));
 
     }
 

@@ -2,7 +2,7 @@
 
 <html>
 <head>
-    <title>Welcome</title>
+    <title>Добро пожаловать!</title>
     <style type="text/css">
       .label {text-align: right}
       .error {color: red}
@@ -11,15 +11,15 @@
 </head>
 
 <body>
-Welcome ${username}
+Добро пожаловать, ${username}!
 <p>
 <ul>
-    <li><a href="/">Goto Blog Home</a></li>
+    <li><a href="/">Домой</a></li>
     <li>
-        <a href="/logout">Logout</a>
+        <a href="/logout">Выйти</a>
     </li>
     <li>
-        <a href="/newpost">Create a New Post</a>
+        <a href="/newpost">Создать <strike>шедевр</strike> новую запись</a>
     </li>
 
 

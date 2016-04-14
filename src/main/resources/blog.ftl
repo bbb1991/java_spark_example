@@ -6,7 +6,7 @@
 <body>
 
 <#if username??>
-    Welcome ${username} <a href="/logout">Logout</a> | <a href="/newpost">New Post</a>
+    Welcome ${username} <a href="/logout">Выйти <strike>за границы сознания</strike></a> | <a href="/newpost">Новый пост</a>
 
     <p>
 </#if>
@@ -29,7 +29,7 @@
     <p>
 
     <p>
-        <em>Filed Under</em>:
+        <em>Тэги</em>:
         <#if post["tags"]??>
             <#list post["tags"] as tag>
                 ${tag}

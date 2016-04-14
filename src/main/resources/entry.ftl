@@ -36,13 +36,13 @@ ${post["body"]}
     <#if (numComments > 0)>
         <#list 0 .. (numComments -1) as i>
 
-                Author: ${post["comments"][i]["author"]}<br>
+                Автор: ${post["comments"][i]["author"]}<br>
             <br>
             ${post["comments"][i]["body"]}<br>
             <hr>
         </#list>
     </#if>
-    <h3>Add a comment</h3>
+    <h3>Не желаете прокомментировать?</h3>
 
     <form action="/newcomment" method="POST">
         <input type="hidden" name="permalink", value="${post["permalink"]}">
