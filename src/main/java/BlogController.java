@@ -44,6 +44,7 @@ public class BlogController {
 
     private void initializeRoutes() throws IOException {
 
+        Spark.externalStaticFileLocation("/static");
         // Домашняя страница блога
         Spark.get("/", (req, resp) -> {
 
@@ -133,7 +134,15 @@ public class BlogController {
 
 
         Spark.get("/login", (req, resp) -> {
-            return new ModelAndView(null, "login.ftl");
+            String username = sessionDAO.findUserNameBySessionId(getSessionCookie(req));
+
+            SimpleHash root = new SimpleHash();
+
+            if (username != null) {
+                root.put("username", username);
+            }
+
+            return new ModelAndView(root, "login.ftl");
         }, new FreeMarkerEngine(configuration));
 
         Spark.post("/login", (req, resp) -> {

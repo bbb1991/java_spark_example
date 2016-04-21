@@ -1,10 +1,6 @@
-<#include "base.ftl">
+<#import "base.ftl" as layout>
 
-    <@head_param "Login"/>
-
-
-
-    <div class="container">
+    <@layout.main title="Login" username="username">
         <h2 align="center">Authorization form:</h2>
         <form class="form-horizontal" role="form" method="post">
             <div class="form-group">
@@ -33,7 +29,4 @@
                 </div>
             </div>
         </form>
-
-    </div>
-    <@foreign_files/>
-    <@footer_param/>
+</@layout.main>
